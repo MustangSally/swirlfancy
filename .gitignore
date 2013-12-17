@@ -1,4 +1,10 @@
 *.Rhistory
 .Rproj.user
 *.Rproj
+<<<<<<< HEAD
 Thumbs.db
+=======
+.RData
+data/saved.RData
+*.html
+>>>>>>> upstream/master
