@@ -1,34 +1,5 @@
-#' Instruction set for testMod.R's "virtual machine".
+#' Instruction set for swirl.R's "virtual machine".
 #' 
-#' In testMod4Daphne there are 3 Output Types, 'text', 'video', and 
-#' 'question', and for questions there are two Answer Types, 'command' 
-#' and 'multiple.' We'll use four S3 classes to deal with them,
-#' 'text', 'video', 'cmd_question', and 'mult_question'.
-#' 
-#' A 'text' row prints Output, waits for <enter> from
-#' readline(...), then indicates it is finished.
-#' 
-#' A 'video' row prints Output (asking about a video,)
-#' waits for a y or n from readline("y or n? "), then performs
-#' one of two sequences. If 'y' it prints 'type nxt() to resume',
-#' indicates it is finished, and causes a return to the prompt.
-#' If 'n' it just indicates it is finished.
-#' 
-#' A 'mult_question' prints Output, parses mod's AnswerChoice
-#' column and enters a potentially infinite loop. Within the loop
-#' it waits for a response from select.list and tests it. If correct
-#' it exits the loop and indicates it is finished. If incorrect 
-#' it prints the Hint and remains in the loop.
-#' 
-#' A 'cmd_question' prints Output and enters a potentially
-#' infinite loop. First it exits to the R prompt. Upon return it tests
-#' what the user has entered. If correct it exits the loop and indicates
-#' it is finished. If incorrect it prints the Hint and remains
-#' in the loop.
-
-library(stringr)
-source("R/S3Tests.R")
-source("R/phrases.R")
 
 #' All classes first Output, all in the same way, hence one method
 #' suffices.
@@ -40,17 +11,39 @@ present.default <- function(current.row, e){
   e$iptr <- 1 + e$iptr
 }
 
-#' All classes then wait for user response, in 4 different ways, hence
-#' 4 different methods are required. Text and video are both finished
+#' All classes then wait for user response, in different ways, hence
+#' different methods are required. Text and video are both finished
 #' at this point.
 
 waitUser <- function(current.row, e)UseMethod("waitUser")
 
-waitUser.text <- function(current.row, e){
+waitUser.default <- function(current.row, e){
   readline("...")
   e$row <- 1 + e$row
   e$iptr <- 1
 }
+
+waitUser.text_question <- function(current.row, e){
+  e$val <- str_trim(unlist(strsplit(readline("ANSWER: "),",")))
+#   e$row <- 1 + e$row
+#   e$iptr <- 1
+  e$iptr <- 1 + e$iptr
+}
+
+waitUser.text_many_question <- function(current.row, e){
+  e$val <- str_trim(unlist(strsplit(readline("ANSWER: "),",")))
+#   e$row <- 1 + e$row
+#   e$iptr <- 1
+  e$iptr <- 1 + e$iptr
+}
+
+waitUser.text_order_question <- function(current.row, e){
+  e$val <- str_trim(unlist(strsplit(readline("ANSWER: "),",")))
+#   e$row <- 1 + e$row
+#   e$iptr <- 1
+  e$iptr <- 1 + e$iptr
+}
+
 
 waitUser.video <- function(current.row, e){
   response <- readline("Yes or No? ")
@@ -62,6 +55,15 @@ waitUser.video <- function(current.row, e){
   e$row <- 1 + e$row
   e$iptr <- 1
 }
+
+waitUser.figure <- function(current.row, e){
+  file.path <- paste(e$path,current.row[,"Figure"],sep="/")
+  source(file=file.path,local=TRUE)
+  readline("...")
+  e$row <- 1 + e$row
+  e$iptr <- 1
+} 
+
 
 waitUser.mult_question <- function(current.row, e){
   # Use strsplit with split=";" to separate the choices
@@ -76,13 +78,26 @@ waitUser.mult_question <- function(current.row, e){
   e$iptr <- 1 + e$iptr
 }
 
+
+waitUser.exact_question <- function(current.row, e){
+  # Indicate a return to the prompt is necessary.
+  e$prompt <- TRUE
+  e$iptr <- 1 + e$iptr
+}
+
+waitUser.range_question <- function(current.row, e){
+  # Indicate a return to the prompt is necessary.
+  e$prompt <- TRUE
+  e$iptr <- 1 + e$iptr
+}
+
 waitUser.cmd_question <- function(current.row, e){
   # Indicate a return to the prompt is necessary.
   e$prompt <- TRUE
   e$iptr <- 1 + e$iptr
 }
 
-#' Only the two question classes enter a testing loop. Testing is the
+#' Only the question classes enter a testing loop. Testing is the
 #' same in both cases. If the response is correct they indicate
 #' instruction should progress. If incorrect, they publish a hint
 #' and return to the previous step.  
@@ -95,13 +110,17 @@ testResponse.default <- function(current.row, e){
     e$iptr <- 1
     e$row <- 1 + e$row
   } else {
-    swirl_out(paste(tryAgain(), current.row[,"Hint"]))
+    swirl_out(tryAgain())
+    swirl_out(current.row[,"Hint"])
     e$iptr <- e$iptr -1
   }
 }
 
 testMe <- function(keyphrase, e){
-  attr(keyphrase, "class") <- strsplit(keyphrase, "=")[[1]][1]
+  # Add a new class attribute to the keyphrase using
+  # the substring left of its first "=".
+  attr(keyphrase, "class") <- c(class(keyphrase),
+                                strsplit(keyphrase, "=")[[1]][1])
   return(runTest(keyphrase, e))
 }
 
