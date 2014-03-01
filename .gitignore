@@ -1,10 +1,7 @@
 *.Rhistory
 .Rproj.user
 *.Rproj
-<<<<<<< HEAD
+^user_data/.+/rda$
+user_data/
+.DS_Store
 Thumbs.db
-=======
-.RData
-data/saved.RData
-*.html
->>>>>>> upstream/master

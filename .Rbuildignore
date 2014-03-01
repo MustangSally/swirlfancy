@@ -1,3 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^data/Courses/.+/.+/csv$
+^.*.html$
+user_data/
+^NEWS.md$
+^\.travis\.yml$

@@ -1,0 +1,24 @@
+\name{install_course_dropbox}
+\alias{install_course_dropbox}
+\title{Install a course from a zipped course directory shared on Dropbox}
+\usage{
+install_course_dropbox(url, multi = FALSE)
+}
+\arguments{
+  \item{url}{URL of the shared file}
+
+  \item{multi}{The user should set to \code{TRUE} if the
+  zipped directory contains multiple courses. The default
+  value is \code{FALSE}.}
+}
+\description{
+Install a course from a zipped course directory shared on
+Dropbox
+}
+\examples{
+\dontrun{
+
+install_course_dropbox("https://www.dropbox.com/s/xttkmuvu7hh72vu/my_course.zip")
+}
+}
+
